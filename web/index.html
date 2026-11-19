@@ -40,7 +40,7 @@
         <figure><figcaption>Real house prices <span>index, 2010 = 100 · quarterly</span></figcaption><div class="cv"><canvas id="c-house"></canvas></div><p class="empty" hidden>No house-price index published for this country.</p></figure>
         <figure><figcaption>Central bank policy rate <span>% · monthly</span></figcaption><div class="cv"><canvas id="c-rate"></canvas></div><p class="empty" hidden>No single policy rate (e.g. Singapore steers its exchange rate instead).</p></figure>
         <figure><figcaption>Fenestration product imports <span>USD millions · annual</span></figcaption><div class="cv"><canvas id="c-imports"></canvas></div><p class="empty" hidden>No import data returned.</p></figure>
-        <figure><figcaption>IMF outlook <span>GDP growth % and investment % of GDP · shaded = forecast</span></figcaption><div class="cv"><canvas id="c-imf"></canvas></div><p class="empty" hidden>No IMF data.</p></figure>
+        <figure><figcaption>Growth &amp; investment <span>IMF GDP growth % (pale bars = forecast) · World Bank investment % of GDP (line)</span></figcaption><div class="cv"><canvas id="c-imf"></canvas></div><p class="empty" hidden>No IMF data.</p></figure>
         <figure><figcaption>Exchange rate <span id="fx-unit">local currency per USD · monthly</span></figcaption><div class="cv"><canvas id="c-fx"></canvas></div><p class="empty" hidden>No exchange-rate data.</p></figure>
         <figure><figcaption>Construction activity <span>World Bank real growth % · annual</span></figcaption><div class="cv"><canvas id="c-wb"></canvas></div><p class="empty" hidden>No World Bank data.</p></figure>
       </div>
@@ -56,7 +56,7 @@
       <h2 class="section-title">How to read this</h2>
       <ul>
         <li><strong>Lines</strong> are published history; <strong>dashed lines</strong> are the forecast; the <strong>shaded band</strong> is the range the model gives 80% odds to.</li>
-        <li><strong>Outlook score</strong>: house prices 25%, interest rates 20%, investment outlook 20%, construction growth 15%, fenestration imports 20%. Missing signals are skipped. Above +15 = Expanding, below −15 = Contracting.</li>
+        <li><strong>Outlook score</strong>: house prices 25%, interest rates 20%, growth &amp; investment outlook 20%, construction growth 15%, fenestration imports 20%. Missing signals are skipped. Above +15 = Expanding, below −15 = Contracting.</li>
         <li><strong>Imports</strong> cover aluminium structures (HS 7610), PVC doors &amp; windows (392520), building hardware (830241) and insulating glass (7008). For big producers such as China, imports are a weaker signal than for import-reliant markets.</li>
         <li><strong>Sources</strong>: BIS (policy rates, house prices, exchange rates), IMF World Economic Outlook, World Bank, UN Comtrade, FRED commodity prices. All free and public.</li>
         <li>This is a planning aid, not a guarantee. Forecasts extend past patterns and cannot foresee policy shocks.</li>

@@ -38,12 +38,12 @@ WORLD_BANK = {
     "NV.IND.TOTL.KD.ZG": "Industry incl. construction, real growth %",
     "NE.GDI.FTOT.KD.ZG": "Gross fixed capital formation, real growth %",
     "SP.URB.GROW":       "Urban population growth %",
+    "NE.GDI.TOTL.ZS":    "Gross capital formation, % of GDP",
 }
 
 # IMF World Economic Outlook series (history + forecasts ~5 years ahead).
 IMF = {
     "NGDP_RPCH": "Real GDP growth %",
-    "NID_NGDP":  "Total investment, % of GDP",
 }
 
 FORECAST_HORIZON_MONTHS = 12
@@ -53,7 +53,7 @@ HISTORY_START_YEAR = 2010
 WEIGHTS = {
     "house_prices": 0.25,   # real residential property prices, YoY + forecast direction
     "rates":        0.20,   # policy rate change (falling = supportive)
-    "investment":   0.20,   # IMF investment ratio trend + GDP growth outlook
+    "investment":   0.20,   # IMF GDP growth outlook + World Bank investment-to-GDP trend
     "construction": 0.15,   # World Bank industry/construction + fixed capital formation growth
     "imports":      0.20,   # fenestration product imports momentum
 }

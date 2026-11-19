@@ -18,14 +18,15 @@ TIMEOUT = 60
 HEADERS = {"User-Agent": "sightline-market-monitor/0.1"}
 
 
-def _get(url: str, params: dict | None = None, retries: int = 3) -> requests.Response | None:
+def _get(url: str, params: dict | None = None, retries: int = 4,
+         headers: dict | None = HEADERS) -> requests.Response | None:
     for attempt in range(retries):
         try:
-            r = requests.get(url, params=params, headers=HEADERS, timeout=TIMEOUT)
+            r = requests.get(url, params=params, headers=headers, timeout=TIMEOUT)
             if r.status_code == 200:
                 return r
-            if r.status_code == 429:
-                time.sleep(5 * (attempt + 1))
+            if r.status_code == 429:  # rate limited: back off and retry
+                time.sleep(2 * (attempt + 1))
                 continue
             return None
         except requests.RequestException:
@@ -104,7 +105,8 @@ def world_bank(iso3_list: list[str], indicator: str) -> dict[str, list[dict]]:
 # ---------- IMF World Economic Outlook (includes forecasts) ----------
 
 def imf(iso3_list: list[str], indicator: str) -> dict[str, list[dict]]:
-    r = _get(f"https://www.imf.org/external/datamapper/api/v1/{indicator}/{'/'.join(iso3_list)}")
+    # The IMF endpoint rejects custom User-Agent strings, so use the library default here.
+    r = _get(f"https://www.imf.org/external/datamapper/api/v1/{indicator}/{'/'.join(iso3_list)}", headers=None)
     out: dict[str, list[dict]] = {c: [] for c in iso3_list}
     if r is None:
         return out
@@ -119,27 +121,26 @@ def imf(iso3_list: list[str], indicator: str) -> dict[str, list[dict]]:
 # ---------- UN Comtrade: fenestration product imports ----------
 
 def imports(reporter_code: int, years: list[int]) -> dict[str, list[dict]]:
-    """Annual import value (USD) per product code, from the public preview API."""
-    out: dict[str, list[dict]] = {code: [] for code in config.TRADE_CODES}
-    r = _get("https://comtradeapi.un.org/public/v1/preview/C/A/HS", {
-        "reporterCode": reporter_code,
-        "period": ",".join(str(y) for y in years),
-        "partnerCode": 0,
-        "cmdCode": ",".join(config.TRADE_CODES),
-        "flowCode": "M",
-    })
-    if r is None:
-        return out
-    for row in r.json().get("data", []) or []:
-        code = row.get("cmdCode")
-        value = row.get("primaryValue")
-        if code in out and value:
-            out[code].append({"date": str(row["refYear"]), "value": float(value)})
-    for code in out:
-        # The preview can return duplicate rows (e.g. several customs regimes); keep the largest.
-        best: dict[str, float] = {}
-        for p in out[code]:
-            best[p["date"]] = max(best.get(p["date"], 0.0), p["value"])
-        out[code] = [{"date": d, "value": v} for d, v in sorted(best.items())]
-    time.sleep(1.5)  # stay polite with the public endpoint
-    return out
+    """Annual import value (USD) per product code, from the public preview API.
+
+    The free preview allows one year per request and about one request per second.
+    """
+    best: dict[str, dict[str, float]] = {code: {} for code in config.TRADE_CODES}
+    for year in years:
+        r = _get("https://comtradeapi.un.org/public/v1/preview/C/A/HS", {
+            "reporterCode": reporter_code,
+            "period": year,
+            "partnerCode": 0,
+            "cmdCode": ",".join(config.TRADE_CODES),
+            "flowCode": "M",
+        })
+        time.sleep(1.2)  # stay within the public rate limit
+        if r is None:
+            continue
+        for row in r.json().get("data", []) or []:
+            code, value = row.get("cmdCode"), row.get("primaryValue")
+            if code in best and value:
+                # Several customs regimes can be reported; keep the largest (the total).
+                y = str(row["refYear"])
+                best[code][y] = max(best[code].get(y, 0.0), float(value))
+    return {code: [{"date": d, "value": v} for d, v in sorted(vals.items())] for code, vals in best.items()}

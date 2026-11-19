@@ -51,7 +51,7 @@ def main() -> None:
         series["wb_gfcf_growth"] = wb["NE.GDI.FTOT.KD.ZG"][c["iso3"]]
         series["wb_urban_growth"] = wb["SP.URB.GROW"][c["iso3"]]
         series["imf_gdp_growth"] = imf["NGDP_RPCH"][c["iso3"]]
-        series["imf_investment"] = imf["NID_NGDP"][c["iso3"]]
+        series["wb_investment_ratio"] = wb["NE.GDI.TOTL.ZS"][c["iso3"]]
 
         trade = sources.imports(c["comtrade"], list(range(this_year - 10, this_year)))
         country = {**c, "series": series, "trade": trade}

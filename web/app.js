@@ -10,7 +10,7 @@ const alpha = (hex, a) => {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 };
 const SIGNAL_LABELS = {
-  house_prices: "House prices", rates: "Interest rates", investment: "Investment outlook",
+  house_prices: "House prices", rates: "Interest rates", investment: "Growth & investment",
   construction: "Construction growth", imports: "Fenestration imports",
 };
 const TRADE_COLORS = () => [C.accent, C.forecast, C.flat, C.muted];
@@ -198,7 +198,7 @@ function select(iso2) {
   draw("c-rate", forecastChart(s.policy_rate.history, s.policy_rate.forecast, { keep: 96, label: "Policy rate %", decimals: 2 }));
   draw("c-fx", forecastChart(s.exchange_rate.history, s.exchange_rate.forecast, { keep: 96, label: `${c.currency}/USD`, decimals: 2 }));
   draw("c-imports", importsChart(c.trade, DATA.trade_codes));
-  draw("c-imf", imfChart(s.imf_gdp_growth, s.imf_investment));
+  draw("c-imf", imfChart(s.imf_gdp_growth, s.wb_investment_ratio));
   draw("c-wb", wbChart(s.wb_industry_growth, s.wb_gfcf_growth));
   try { localStorage.setItem("sightline.country", iso2); } catch (_) { /* storage blocked */ }
 }

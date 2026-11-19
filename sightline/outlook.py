@@ -43,18 +43,19 @@ def _rates(s: dict) -> dict | None:
 
 
 def _investment(inv: list[dict], gdp: list[dict]) -> dict | None:
+    """IMF GDP growth forecast (next 3 years) + World Bank investment-to-GDP trend."""
     year = dt.date.today().year
-    by_year_inv = {int(p["date"]): p["value"] for p in inv}
     by_year_gdp = {int(p["date"]): p["value"] for p in gdp}
     parts, texts = [], []
-    if year in by_year_inv and year + 2 in by_year_inv:
-        delta = by_year_inv[year + 2] - by_year_inv[year]
-        parts.append(_squash(delta, 1.0))
-        texts.append(f"IMF sees investment at {by_year_inv[year + 2]:.1f}% of GDP in {year + 2} ({delta:+.1f} pp)")
-    if year + 1 in by_year_gdp:
-        g = by_year_gdp[year + 1]
+    ahead = [by_year_gdp[y] for y in (year + 1, year + 2, year + 3) if y in by_year_gdp]
+    if ahead:
+        g = sum(ahead) / len(ahead)
         parts.append(_squash(g - 2.5, 2.5))
-        texts.append(f"GDP growth forecast {g:.1f}% for {year + 1}")
+        texts.append(f"IMF forecasts GDP growth averaging {g:.1f}% over {year + 1}-{year + len(ahead)}")
+    if len(inv) >= 4:
+        delta = inv[-1]["value"] - inv[-4]["value"]
+        parts.append(_squash(delta, 1.5))
+        texts.append(f"investment {inv[-1]['value']:.1f}% of GDP in {inv[-1]['date']} ({delta:+.1f} pp in 3 years)")
     if not parts:
         return None
     return {"value": sum(parts) / len(parts), "text": "; ".join(texts) + "."}
@@ -70,16 +71,22 @@ def _construction(industry: list[dict], gfcf: list[dict]) -> dict | None:
 
 
 def _imports(trade: dict[str, list[dict]]) -> dict | None:
-    totals: dict[str, float] = {}
+    """Median 3-year growth across product groups, so one category (e.g. aluminium
+    structures, which also covers solar mounting frames) cannot dominate."""
+    growth, totals = [], {}
     for series in trade.values():
         for p in series:
             totals[p["date"]] = totals.get(p["date"], 0.0) + p["value"]
-    years = sorted(totals)
-    if len(years) < 4:
+        if len(series) >= 4 and series[-4]["value"] > 0:
+            growth.append(((series[-1]["value"] / series[-4]["value"]) ** (1 / 3) - 1) * 100)
+    if len(growth) < 2:
         return None
-    last, base = years[-1], years[-4]
-    cagr = ((totals[last] / totals[base]) ** (1 / 3) - 1) * 100 if totals[base] else 0.0
-    return {"value": _squash(cagr, 10), "text": f"Fenestration product imports ${totals[last] / 1e6:,.0f}M in {last}, {cagr:+.1f}% a year since {base}."}
+    growth.sort()
+    mid = len(growth) // 2
+    median = growth[mid] if len(growth) % 2 else (growth[mid - 1] + growth[mid]) / 2
+    last = max(totals)
+    return {"value": _squash(median, 10),
+            "text": f"Fenestration product imports ${totals[last] / 1e6:,.0f}M in {last}; typical product group growing {median:+.1f}% a year over 3 years."}
 
 
 def score(country: dict) -> dict:
@@ -87,7 +94,7 @@ def score(country: dict) -> dict:
     signals = {
         "house_prices": _house_prices(s["house_prices"]),
         "rates":        _rates(s["policy_rate"]),
-        "investment":   _investment(s["imf_investment"], s["imf_gdp_growth"]),
+        "investment":   _investment(s["wb_investment_ratio"], s["imf_gdp_growth"]),
         "construction": _construction(s["wb_industry_growth"], s["wb_gfcf_growth"]),
         "imports":      _imports(country["trade"]),
     }

@@ -13,7 +13,7 @@ Current countries: United Kingdom, India, Brazil, Thailand, Vietnam, Singapore, 
 |---|---|---|
 | Real house prices | Rising prices lead new building and renovation | BIS |
 | Central bank policy rate | Cheaper credit leads construction starts by 6-18 months | BIS |
-| Investment outlook | IMF forecasts of investment and GDP growth, 5 years ahead | IMF World Economic Outlook |
+| Growth & investment | IMF GDP growth forecasts (3 years ahead) and the investment-to-GDP trend | IMF World Economic Outlook, World Bank |
 | Construction growth | Industry (incl. construction) and fixed-investment growth | World Bank |
 | Fenestration imports | Direct demand for aluminium frames, PVC windows, hardware, insulating glass | UN Comtrade |
 | Input costs | Aluminium, zinc, copper and oil (PVC/energy) prices | FRED (IMF commodity prices) |
@@ -26,6 +26,7 @@ Each signal is scaled to −1..+1 and weighted (house prices 25%, rates 20%, inv
 construction 15%, imports 20%), then multiplied by 100.
 Above +15 = **Expanding**, below −15 = **Contracting**, otherwise **Stable**.
 Missing signals are skipped. Weights and thresholds live in [`sightline/config.py`](sightline/config.py).
+After changing them, run `python -m sightline.rescore` to recompute scores from the saved data without refetching.
 
 ## Run it
 
@@ -57,4 +58,5 @@ UN Comtrade reporter code and currency, then rerun the build.
 - Forecasts extend past patterns. They cannot foresee policy changes or shocks.
 - For large producers (China), imports are a weaker demand signal than for import-reliant markets.
 - Vietnam has no BIS house-price index; Singapore has no policy rate (it manages its exchange rate).
-- Trade data lags about a year.
+- Trade data lags about a year. HS 7610 (aluminium structures) also includes non-window items such as solar mounting
+  frames, so the import signal uses the median growth across the four product groups rather than the total.
