@@ -48,6 +48,14 @@ Without TimesFM installed (or with `--no-timesfm`) a simple damped-trend model i
 every month and commits the new `web/data/sightline.json`. You can also run it by hand from the
 repository's **Actions** tab.
 
+### When a source refuses GitHub's servers
+
+Some sources (the IMF, and FRED's public download) refuse requests from cloud servers. When that happens
+the build keeps the last good data for that source, and the dashboard header says which sources were kept.
+For fresh commodity prices on GitHub, add a free FRED API key
+(https://fred.stlouisfed.org/docs/api/api_key.html) as a repository secret named `FRED_API_KEY`
+(Settings → Secrets and variables → Actions). The IMF publishes new forecasts only in April and October.
+
 ## Adding a country
 
 Add one line to `COUNTRIES` in [`sightline/config.py`](sightline/config.py) with its ISO codes,

@@ -225,7 +225,8 @@ async function init() {
     return;
   }
   const when = new Date(DATA.generated_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
-  document.getElementById("meta").innerHTML = `Updated ${when}<br>Forecasts: ${DATA.model}`;
+  const carried = (DATA.carried_over || []).length ? `<br>Last good data kept for: ${DATA.carried_over.join(", ")}` : "";
+  document.getElementById("meta").innerHTML = `Updated ${when}<br>Forecasts: ${DATA.model}${carried}`;
   renderCards();
   renderCommodities();
   let start = null;

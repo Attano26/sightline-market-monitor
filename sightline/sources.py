@@ -7,6 +7,7 @@ a gap is returned as an empty list so the dashboard can show "no data".
 from __future__ import annotations
 
 import io
+import os
 import time
 
 import pandas as pd
@@ -19,10 +20,10 @@ HEADERS = {"User-Agent": "sightline-market-monitor/0.1"}
 
 
 def _get(url: str, params: dict | None = None, retries: int = 4,
-         headers: dict | None = HEADERS) -> requests.Response | None:
+         headers: dict | None = HEADERS, timeout: int = TIMEOUT) -> requests.Response | None:
     for attempt in range(retries):
         try:
-            r = requests.get(url, params=params, headers=headers, timeout=TIMEOUT)
+            r = requests.get(url, params=params, headers=headers, timeout=timeout)
             if r.status_code == 200:
                 return r
             if r.status_code == 429:  # rate limited: back off and retry
@@ -72,8 +73,23 @@ def exchange_rate(iso2: str, currency: str) -> list[dict]:
 # ---------- FRED: global commodity prices ----------
 
 def commodity(series_id: str) -> list[dict]:
-    r = _get("https://fred.stlouisfed.org/graph/fredgraph.csv", {"id": series_id})
-    if r is None:
+    """Monthly commodity price from FRED.
+
+    With a free FRED_API_KEY (https://fred.stlouisfed.org/docs/api/api_key.html) the official API is
+    used, which also works from GitHub's servers. Without one, the public CSV download is tried
+    (it works from ordinary computers but is often refused from cloud servers).
+    """
+    key = os.environ.get("FRED_API_KEY", "").strip()
+    if key:
+        r = _get("https://api.stlouisfed.org/fred/series/observations", {
+            "series_id": series_id, "api_key": key, "file_type": "json",
+            "observation_start": f"{config.HISTORY_START_YEAR}-01-01",
+        }, retries=3, timeout=30)
+        if r is not None:
+            obs = [o for o in r.json().get("observations", []) if o["value"] not in (".", "")]
+            return [{"date": o["date"][:7], "value": round(float(o["value"]), 4)} for o in obs]
+    r = _get("https://fred.stlouisfed.org/graph/fredgraph.csv", {"id": series_id}, retries=2, timeout=20)
+    if r is None or not r.text.lower().startswith(("date", "observation_date")):
         return []
     df = pd.read_csv(io.StringIO(r.text))
     df.columns = ["date", "value"]
