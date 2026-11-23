@@ -2,6 +2,8 @@
 
 Early-warning monitor for fenestration (window, door and façade) markets.
 
+**Live dashboard: https://attano26.github.io/sightline-market-monitor/** (no install needed; updates itself monthly).
+
 Sightline pulls free public data every month, forecasts it with Google's **TimesFM** forecasting model,
 and turns it into one outlook score per country, shown on a web dashboard.
 
